@@ -1,0 +1,10 @@
+{
+  "name": "learntoplay",
+  "version": "2.0.0",
+  "description": "LearnToPlay — Charlie's AI geography study OS (Kingston, Year 2)",
+  "type": "module",
+  "engines": { "node": ">=18" },
+  "scripts": {
+    "start": "node server.js"
+  }
+}

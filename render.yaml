@@ -1,0 +1,14 @@
+# One-click deploy to Render so Charlie (and his mates) can hit it from campus.
+# New → Blueprint → point at this repo. Then set ANTHROPIC_API_KEY in the dashboard.
+services:
+  - type: web
+    name: learntoplay
+    runtime: node
+    plan: free
+    buildCommand: ""
+    startCommand: node server.js
+    envVars:
+      - key: ANTHROPIC_API_KEY
+        sync: false          # set this secret in the Render dashboard, never in the repo
+      - key: LTP_MODEL
+        value: claude-sonnet-5
