@@ -393,7 +393,7 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
     <section class="view" id="view-labs"><div class="wrap">
       <div class="eyebrow">Interactive Labs</div>
       <h2 style="font-size:24px;margin:6px 0 10px">Don't read it. Move it.</h2>
-      <p class="lead" style="margin-bottom:20px">These run entirely on your device — no internet needed. Drag the sliders and watch the geography respond. Figures are illustrative: the point is the <em>shape</em> of the relationship.</p>
+      <p class="lead" style="margin-bottom:20px">Drag the sliders and watch the geography respond. Most run entirely on your device; the <b>Live river</b> lab pulls real, up-to-the-minute data from the Environment Agency. For the models, the point is the <em>shape</em> of the relationship, not exact figures.</p>
 
       <div class="lab">
         <h3>🌧️ Storm hydrograph</h3>
@@ -409,6 +409,31 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
           <div class="r"><span class="v" id="hRisk">—</span><span class="k">FLOOD RISK</span></div>
         </div>
         <div class="note">Try: drag urbanisation from 0 → 95% at fixed rainfall. That collapsing lag time is exactly why floodplain development is contested.</div>
+      </div>
+
+      <div class="lab">
+        <h3>📡 Live river — real data, right now</h3>
+        <div class="sub">That curve above is a model. <b>This one is real.</b> Live discharge from the Environment Agency gauging network — the last 24 hours, straight off the river. Start with the Thames at Kingston, through your own town.</div>
+        <canvas id="riverCanvas" height="320"></canvas>
+        <div class="ctrl"><div class="ctop"><span>Gauging station</span><b id="rvUnit">m³/s</b></div>
+          <select class="field" id="rvStation" style="margin-top:6px">
+            <option value="3400TH">River Thames · Kingston upon Thames ⭐</option>
+            <option value="2604TH">River Thames · Taplow</option>
+            <option value="2200TH">River Thames · Reading</option>
+            <option value="4083">River Trent · Meaford</option>
+          </select>
+        </div>
+        <div class="row" style="margin-top:12px">
+          <button class="btn btn-primary" id="rvRefresh">↻ Refresh</button>
+          <span id="rvStamp" style="font-size:12px;color:#5E7686;align-self:center"></span>
+        </div>
+        <div class="readout">
+          <div class="r"><span class="v" id="rvNow">—</span><span class="k">LATEST</span></div>
+          <div class="r"><span class="v" id="rvPeak">—</span><span class="k">24H PEAK</span></div>
+          <div class="r"><span class="v" id="rvMin">—</span><span class="k">24H LOW</span></div>
+          <div class="r"><span class="v" id="rvTrend">—</span><span class="k">TREND</span></div>
+        </div>
+        <div class="note" id="rvNote">Compare the <em>shape</em> with the model above. Is it flashy (sharp peak, short lag) or subdued? What does that say about the catchment upstream — rural, urban, big, steep? Ask the tutor to read this hydrograph with you.<br><span style="color:#5E7686">Data: Environment Agency real-time flood-monitoring API, Open Government Licence v3.</span></div>
       </div>
 
       <div class="lab">
@@ -494,13 +519,13 @@ input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;bac
 // Source: Kingston course structure. Edit `prog` as the year goes; it's just a progress bar.
 const MODULES = [
   {id:"row", ic:"🌊", name:"Rivers, Oceans & the Atmosphere", color:"#5BC0D9",
-   desc:"Core · 30cr. Coasts, estuaries, deltas, drainage basins, ocean circulation & the atmosphere — hydrological & sedimentological processes, source to sink; hazards & climate impacts.", prog:8},
-  {id:"gis", ic:"🛰️", name:"Data Analytics & GIS", color:"#D96BA0",
-   desc:"Core · 30cr. Statistics in SPSS, qualitative coding in NVivo, spatial analysis & digital mapping in ArcGIS.", prog:5},
+   desc:"Core (GG5021). Autumn — Coasts (estuaries, deltas, saltmarshes, beaches, dunes, spits; coastal change mapping) & Water on Land (river basins, runoff, sediments, the River Towy workshop). Spring — The Ocean (surface & thermohaline circulation, ENSO, tsunami, bathymetry, palaeoclimate isotopes) & The Atmosphere (severe weather, clouds & precipitation, global winds). Assessed by an estuary briefing paper, an ocean–atmosphere poster and a reflective log.", prog:8},
+  {id:"gis", ic:"🛰️", name:"Understanding Our World with GIS", color:"#D96BA0",
+   desc:"Core (GG5022). Obtaining, processing, analysing and visualising spatial data in ArcGIS Pro: remote sensing; relational, network & surface data models; exploratory data analysis; buffer, join, overlay, surface & network analysis; cartographic & data-visualisation design. Assessed by a 1,500-word report plus maps and analytical outputs.", prog:5},
   {id:"methods", ic:"📊", name:"Advanced Research Methods & Project Management", color:"#E0A340",
-   desc:"Core · 30cr. Quantitative & qualitative design, sampling, team projects — the toolkit for the Year 3 dissertation.", prog:3},
+   desc:"Core (GG5003). Autumn — statistics in SPSS (contingency tables & chi-square, correlation, regression, t-test & ANOVA) plus qualitative data analysis. Spring — project management (Linear & Agile approaches, MS Teams & Padlet) and a team-working project. The toolkit for the Year 3 dissertation. Assessed by a stats take-home, a qualitative report and a teamwork challenge.", prog:3},
   {id:"ppp", ic:"🏙️", name:"People, Place & Politics", color:"#84B26A",
-   desc:"Core · 30cr. Geopolitics, power & space, and critical human-geography investigation.", prog:6},
+   desc:"Core human geography. Political economy of contemporary capitalism — state, business & citizens; globalisation & capital circulation; climate change & sustainable development; alienation and social & cultural diversity. Set against the development of geographical thought and critical human-geography investigation. Assessed by exam/MCQ and an investigative report.", prog:6},
 ];
 
 // For context on the cards below "This year" — where he's come from and where he's headed.
@@ -524,7 +549,7 @@ const TOOLS = [
 const LENSES = ["👶 A five-year-old","🎮 A gamer","🚜 A farmer","🌍 A geography lecturer","👨‍🔬 A scientist","🎓 An exam examiner"];
 const TUTOR_QP = ["Explain the Hjulström curve simply, then at degree level","Rivers, Oceans & the Atmosphere: what's a 'source to sink' sediment approach?","Give me 3 evaluation points on managed retreat","When do I use SPSS vs NVivo for my project data?","How would Kingston mark a 25-mark physical geography essay?","Quiz me on ocean circulation"];
 
-const GEO_SYS = "You are a warm, sharp geography tutor for Charlie, a second-year BSc Geography undergraduate at Kingston University in the UK. His Year 2 core modules (all 30 credits) are: 'Rivers, Oceans and the Atmosphere' (coasts/estuaries/deltas, drainage basins, ocean circulation, the atmosphere, hydrological & sedimentological processes source-to-sink, hazards & climate impacts); 'Data Analytics and GIS' (SPSS statistics, NVivo qualitative coding, ArcGIS spatial analysis & digital mapping); 'Advanced Research Methods and Project Management' (quantitative & qualitative design, sampling, team projects, building toward the Year 3 dissertation); and 'People, Place and Politics' (geopolitics, power and space, critical human geography). Ground examples in these modules where it's natural. Use UK spelling and UK case studies (the Thames, Somerset Levels, Holderness, Boscastle, etc.). Be concise but substantive — degree level by default, but adapt instantly when asked to go simpler or harder. When asked exam-style questions, explain mark-scheme thinking (AO1 knowledge, AO2 application, AO3 evaluation) and what examiners reward. Never write a student's assignment for them — coach instead. Format with short paragraphs and the occasional bold lead-in; avoid long bullet dumps.";
+const GEO_SYS = "You are a warm, sharp geography tutor for Charlie, a second-year (Level 5) BSc Geography undergraduate at Kingston University, London (RGS-accredited; Penrhyn Road campus). Ground examples in his ACTUAL Year 2 core modules and reference his real assessments by name when relevant. His modules:\n\n1. 'Rivers, Oceans and the Atmosphere' (GG5021). Autumn: Coasts — catchment to basin — estuaries, deltaic environments, coastal processes, saltmarshes, coastal erosion & management, beaches, dunes, spits & barriers, practical coastal change mapping; and Water on Land — the river basin, runoff & river-basin relationships, river-basin sediments, river metrics (the River Towy workshop). Spring: The Ocean — surface & thermohaline circulation, El Nino/La Nina/ENSO, storms/tsunami/floods, bathymetry, palaeo-climate records & isotopes; and The Atmosphere — severe weather hazards, moisture/clouds/precipitation, global winds. Nature-based solutions & natural flood management run throughout. Real assessments: an estuary briefing paper (3000 words), an ocean–atmosphere poster, and a 600-word reflective log.\n\n2. 'Understanding Our World with GIS' (GG5022) — obtaining, processing, integrating, analysing & visualising geographical data in ArcGIS Pro: digital data collection, principles of remote sensing, relational/network/surface data models, exploratory data analysis, spatial & non-spatial analysis (buffer, join, overlay, distance, surface & network analysis), and cartographic/data-visualisation principles. Real assessment: a 1,500-word report plus maps & analytical outputs.\n\n3. 'Advanced Research Methods and Project Management' (GG5003). Autumn — statistics & qualitative data analysis: SPSS, contingency tables (chi-square), correlation, regression, t-test & ANOVA. Spring — project management: Linear & Agile approaches, MS Teams & Padlet, and a team-working project. This builds toward the Year 3 dissertation. Real assessments: a take-home statistics assignment, a 2000-word qualitative report with tables & diagrams, and a teamwork challenge.\n\n4. 'People, Place and Politics' — Level 5 human geography: the political economy of contemporary capitalism (how capitalism works across spatial scales; state, business & citizens; capital circulation & wealth accumulation; alienation, nature & sustainable development; climate change & the SDGs), set against the development of geographical thought & paradigms and critical, student-led human-geography investigation.\n\nUse UK spelling and UK/London case studies where natural (the Thames and Kingston upon Thames, the River Towy, Somerset Levels, Holderness, Boscastle, the Sendai Framework, Grenfell for risk/vulnerability). Be concise but substantive — degree level by default, but adapt instantly when asked to go simpler or harder. When asked exam-style questions, explain mark-scheme thinking (AO1 knowledge, AO2 application, AO3 evaluation) and what examiners reward. Never write a student's assignment for them — coach instead. Format with short paragraphs and the occasional bold lead-in; avoid long bullet dumps.";
 
 /* ================= HELPERS ================= */
 const $ = s => document.querySelector(s);
@@ -800,7 +825,93 @@ Material:
 
 /* ================= LABS (canvas sims) ================= */
 let labsInited=false;
-function initLabsOnce(){ if(labsInited) return; labsInited=true; initHydro(); initClimate(); initSea(); }
+function initLabsOnce(){ if(labsInited) return; labsInited=true; initHydro(); initRiver(); initClimate(); initSea(); }
+
+/* ---- Live river (real Environment Agency data) ---- */
+function initRiver(){
+  const cv=$("#riverCanvas"); const ctx=cv.getContext("2d");
+  let series=[], unit="m³/s", loading=false, errMsg="";
+  function fit(){cv.style.height="320px";cv.width=cv.clientWidth*devicePixelRatio;cv.height=320*devicePixelRatio;ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);}
+  function msg(t){ const W=cv.clientWidth,H=320; ctx.clearRect(0,0,W,H);
+    ctx.fillStyle="#5E7686";ctx.font="13px Inter, sans-serif";ctx.textAlign="center";
+    ctx.fillText(t,W/2,H/2);ctx.textAlign="left"; }
+  function draw(){
+    const W=cv.clientWidth,H=320,padL=48,padB=34,padT=14,padR=14;
+    const plotW=W-padL-padR,plotH=H-padB-padT;
+    if(loading){ return msg("Fetching live river data…"); }
+    if(errMsg){ return msg(errMsg); }
+    if(!series.length){ return msg("No recent data for this station — try another."); }
+    ctx.clearRect(0,0,W,H);
+    const t0=series[0].t, t1=series[series.length-1].t, span=Math.max(1,t1-t0);
+    const vals=series.map(p=>p.v);
+    let vmin=Math.min(...vals), vmax=Math.max(...vals);
+    if(vmax-vmin<1e-6){vmax+=1;vmin-=1;}
+    const pad=(vmax-vmin)*0.12; vmin-=pad; vmax+=pad; if(vmin<0&&Math.min(...vals)>=0) vmin=0;
+    const X=t=>padL+((t-t0)/span)*plotW, Y=v=>padT+plotH-((v-vmin)/(vmax-vmin))*plotH;
+    // grid + axes
+    ctx.strokeStyle="rgba(255,255,255,.06)";ctx.lineWidth=1;ctx.font="10px 'JetBrains Mono'";ctx.fillStyle="#5E7686";
+    for(let g=0;g<=4;g++){const v=vmin+(vmax-vmin)*g/4;const y=Y(v);ctx.beginPath();ctx.moveTo(padL,y);ctx.lineTo(W-padR,y);ctx.stroke();ctx.fillText(v.toFixed(1),6,y+3);}
+    // hour ticks (every 6h)
+    for(let h=0;h<=24;h+=6){const t=t1-(24-h)*3600000;if(t<t0)continue;const d=new Date(t);ctx.fillText((d.getHours()+"").padStart(2,"0")+":00",X(t)-12,H-12);}
+    // area + line
+    ctx.beginPath();series.forEach((p,i)=>{const x=X(p.t),y=Y(p.v);i?ctx.lineTo(x,y):ctx.moveTo(x,y);});
+    ctx.strokeStyle="#5BC0D9";ctx.lineWidth=2.4;ctx.stroke();
+    ctx.lineTo(X(t1),Y(vmin));ctx.lineTo(X(t0),Y(vmin));ctx.closePath();
+    ctx.fillStyle="rgba(91,192,217,.10)";ctx.fill();
+    // latest point marker
+    const last=series[series.length-1];
+    ctx.fillStyle="#5BC0D9";ctx.beginPath();ctx.arc(X(last.t),Y(last.v),4,0,7);ctx.fill();
+  }
+  function setReadouts(){
+    const el=(id,v)=>{const e=$(id);if(e)e.textContent=v;};
+    if(!series.length){["#rvNow","#rvPeak","#rvMin","#rvTrend"].forEach(i=>el(i,"—"));return;}
+    const vals=series.map(p=>p.v), last=vals[vals.length-1];
+    el("#rvNow",last.toFixed(2)); el("#rvPeak",Math.max(...vals).toFixed(2)); el("#rvMin",Math.min(...vals).toFixed(2));
+    const prev=vals.length>4?vals[vals.length-5]:vals[0]; const d=last-prev;
+    const tEl=$("#rvTrend");
+    const up=d>0.02*(Math.max(...vals)||1), down=d<-0.02*(Math.max(...vals)||1);
+    tEl.textContent= up?"↑ rising": down?"↓ falling":"→ steady";
+    tEl.style.color= up?"#D96BA0": down?"#84B26A":"#E0A340";
+    $("#rvUnit").textContent=unit;
+  }
+  async function load(){
+    const station=$("#rvStation").value;
+    loading=true;errMsg="";draw();
+    const since=new Date(Date.now()-24*3600*1000).toISOString().replace(/\.\d+Z$/,"Z");
+    try{
+      const url="https://environment.data.gov.uk/flood-monitoring/id/stations/"+station+"/readings?since="+since+"&_sorted";
+      const res=await fetch(url,{mode:"cors"});
+      if(!res.ok) throw new Error("http_"+res.status);
+      const data=await res.json();
+      const items=data.items||[];
+      // auto-detect measure: prefer flow, else level
+      const flow=items.filter(i=>/flow/.test(i.measure)&&typeof i.value==="number");
+      const level=items.filter(i=>/level/.test(i.measure)&&typeof i.value==="number");
+      let chosen, u;
+      if(flow.length){ // lock to the single flow measure with most points
+        const byM={}; flow.forEach(i=>{const m=i.measure;(byM[m]=byM[m]||[]).push(i);});
+        chosen=Object.values(byM).sort((a,b)=>b.length-a.length)[0]; u="m³/s";
+      } else if(level.length){
+        const byM={}; level.forEach(i=>{const m=i.measure;(byM[m]=byM[m]||[]).push(i);});
+        chosen=Object.values(byM).sort((a,b)=>b.length-a.length)[0]; u="m (level)";
+      } else { chosen=[]; u="m³/s"; }
+      unit=u;
+      series=chosen.map(i=>({t:new Date(i.dateTime).getTime(),v:i.value})).sort((a,b)=>a.t-b.t);
+      loading=false;
+      $("#rvStamp").textContent = series.length ? ("updated "+new Date(series[series.length-1].t).toLocaleTimeString("en-GB",{hour:"2-digit",minute:"2-digit"})+" · "+series.length+" readings") : "";
+      fit();draw();setReadouts();
+    }catch(e){
+      loading=false;
+      errMsg = (!navigator.onLine) ? "You're offline — the live river lab needs internet." : "Couldn't reach the river gauge just now. Tap Refresh to retry.";
+      $("#rvStamp").textContent="";
+      draw();setReadouts();
+    }
+  }
+  $("#rvStation").onchange=load;
+  $("#rvRefresh").onclick=load;
+  fit(); addEventListener("resize",()=>{fit();draw();});
+  load();
+}
 
 /* ---- Storm hydrograph ---- */
 function initHydro(){
